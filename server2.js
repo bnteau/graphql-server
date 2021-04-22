@@ -6,9 +6,11 @@ const schema = buildSchema(`
     type Query {
         course(id: Int!): Course
         courses(topic: String): [Course]
+        coursesByString(title: String): [Course]
     },
     type Mutation {
         updateCourseTopic(id: Int!, topic: String!): Course
+        createNewCourse(id: Int!, title: String!, author: String, description: String, topic: String, url: String): [Course]
     },
     type Course {
         id: Int
@@ -17,7 +19,7 @@ const schema = buildSchema(`
         description: String
         topic: String
         url: String
-    }
+    },
 `);
 
 const coursesData = [
@@ -63,6 +65,15 @@ const getCourses = function(args) {
     }
 }
 
+const getCoursesByString = function(args) {
+    if (args.title) {
+        const title = args.title;
+        return coursesData.filter(course => course.title.indexOf(title) !== -1 && title);
+    } else {
+        return coursesData;
+    }
+}
+
 const updateCourseTopic = function ({ id, topic }) {
     coursesData.map(course => {
         course.topic = topic;
@@ -71,10 +82,26 @@ const updateCourseTopic = function ({ id, topic }) {
     return coursesData.filter(course => course.id === id) [0];
 }
 
+const createNewCourse = function({ title, author, description, topic, url}) {
+    const count = coursesData.length;
+    const newCourse = {
+        id: count+1,
+        title,
+        author,
+        description,
+        topic,
+        url
+    };
+    coursesData.push(newCourse);
+    return coursesData;
+}
+
 const root = {
     course: getCourse,
     courses: getCourses,
+    coursesByString: getCoursesByString,
     updateCourseTopic: updateCourseTopic,
+    createNewCourse: createNewCourse,
 };
 
 const app = express();
